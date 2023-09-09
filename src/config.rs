@@ -2,8 +2,8 @@ use std::collections::BTreeSet;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct Config {
-    pub enable: bool,
+    #[serde(default)]
     pub allowed: BTreeSet<Vec<String>>,
 }

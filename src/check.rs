@@ -16,11 +16,16 @@ const CONFIG_ATTRIBUTE_PATH: &str = "flatFlake";
 
 pub fn check(check_options: CheckOptions) -> Result<(), Error> {
     let flake = check_options.flake;
-    let config: Config = call_nix(["eval", &format!("{flake}#{CONFIG_ATTRIBUTE_PATH}")])?;
-    if !config.enable {
-        log::info!("{flake}#{CONFIG_ATTRIBUTE_PATH}.enable = false, exit");
-        return Ok(());
-    }
+    let config: Config = match call_nix(["eval", &format!("{flake}#{CONFIG_ATTRIBUTE_PATH}")]) {
+        Ok(c) => c,
+        Err(e) => {
+            log::debug!("error: {}", e);
+            log::info!(
+                "failed to eval '{flake}#{CONFIG_ATTRIBUTE_PATH}', use default configuration"
+            );
+            Default::default()
+        }
+    };
     let metadata: Metadata = call_nix(["flake", "metadata", &flake])?;
     log::debug!("config: {:#?}", config);
     log::debug!("{:#?}", metadata);

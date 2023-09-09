@@ -23,10 +23,6 @@
   outputs = inputs @ {flake-parts, ...}:
     flake-parts.lib.mkFlake {inherit inputs;}
     {
-      flake.flatFlake = {
-        enable = true;
-        allowed = [];
-      };
       systems = import inputs.systems;
       imports = [
         inputs.flake-parts.flakeModules.easyOverlay
