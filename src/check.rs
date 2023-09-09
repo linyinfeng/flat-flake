@@ -1,5 +1,7 @@
 use std::{
     collections::{BTreeMap, BTreeSet},
+    fs::File,
+    io::BufReader,
     process::Command,
 };
 
@@ -15,22 +17,13 @@ use crate::{
 const CONFIG_ATTRIBUTE_PATH: &str = "flatFlake";
 
 pub fn check(check_options: CheckOptions) -> Result<(), Error> {
-    let flake = check_options.flake;
-    let config: Config = match call_nix(["eval", &format!("{flake}#{CONFIG_ATTRIBUTE_PATH}")]) {
-        Ok(c) => c,
-        Err(e) => {
-            log::debug!("error: {}", e);
-            log::info!(
-                "failed to eval '{flake}#{CONFIG_ATTRIBUTE_PATH}', use default configuration"
-            );
-            Default::default()
-        }
-    };
-    let metadata: Metadata = call_nix(["flake", "metadata", &flake])?;
+    let config = get_config(&check_options)?;
     log::debug!("config: {:#?}", config);
-    log::debug!("{:#?}", metadata);
 
-    let Locks { root, nodes, .. } = &metadata.locks;
+    let locks = get_locks(&check_options)?;
+    log::debug!("{:#?}", locks);
+
+    let Locks { root, nodes, .. } = &locks;
 
     let root_node = &get_node(nodes, root)?;
 
@@ -51,6 +44,35 @@ pub fn check(check_options: CheckOptions) -> Result<(), Error> {
     }
 
     Ok(())
+}
+
+pub fn get_config(options: &CheckOptions) -> Result<Config, Error> {
+    if let Some(path) = &options.config_file {
+        let file = BufReader::new(File::open(path)?);
+        return Ok(serde_json::from_reader(file)?);
+    }
+
+    let flake = &options.flake;
+    match call_nix(["eval", &format!("{flake}#{CONFIG_ATTRIBUTE_PATH}")]) {
+        Ok(c) => Ok(c),
+        Err(e) => {
+            log::debug!("error: {}", e);
+            log::info!(
+                "failed to eval '{flake}#{CONFIG_ATTRIBUTE_PATH}', use default configuration"
+            );
+            Ok(Default::default())
+        }
+    }
+}
+
+pub fn get_locks(options: &CheckOptions) -> Result<Locks, Error> {
+    if let Some(path) = &options.lock_file {
+        let file = BufReader::new(File::open(path)?);
+        return Ok(serde_json::from_reader(file)?);
+    }
+
+    let metadata: Metadata = call_nix(["flake", "metadata", &options.flake])?;
+    Ok(metadata.locks)
 }
 
 pub fn check_node(
@@ -88,7 +110,15 @@ where
     T: DeserializeOwned,
 {
     let mut args_vec: Vec<_> = args.into_iter().map(|s| s.as_ref().to_owned()).collect();
-    args_vec.push("--json".to_owned());
+    args_vec.extend(
+        [
+            "--json",
+            "--extra-experimental-features",
+            "nix-command flakes",
+        ]
+        .into_iter()
+        .map(|s| s.to_owned()),
+    );
     let command_vec = {
         let mut cmd = vec!["nix".to_owned()];
         cmd.extend(args_vec.iter().cloned());

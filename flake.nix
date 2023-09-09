@@ -20,14 +20,22 @@
     flake-compat.flake = false;
   };
 
-  outputs = inputs @ {flake-parts, ...}:
+  outputs = inputs @ {
+    self,
+    flake-parts,
+    ...
+  }:
     flake-parts.lib.mkFlake {inherit inputs;}
-    {
+    (let
+      flakeModule = import ./flake-module.nix {flat-flake = self;};
+    in {
       systems = import inputs.systems;
       imports = [
         inputs.flake-parts.flakeModules.easyOverlay
         inputs.treefmt-nix.flakeModule
+        flakeModule
       ];
+      flake.flakeModules.flatFlake = flakeModule;
       perSystem = {
         self',
         config,
@@ -61,7 +69,7 @@
         };
         overlayAttrs.flat-flake = config.packages.flat-flake;
         checks = {
-          inherit (self'.packages) flat-flake;
+          package = self'.packages.flat-flake;
           doc = craneLib.cargoDoc commonArgs;
           fmt = craneLib.cargoFmt {inherit src;};
           nextest = craneLib.cargoNextest commonArgs;
@@ -85,5 +93,5 @@
           };
         };
       };
-    };
+    });
 }

@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use clap::{Parser, Subcommand};
 
 #[derive(Clone, Debug, Parser)]
@@ -18,6 +20,10 @@ pub enum Commands {
 pub struct CheckOptions {
     #[arg(default_value = ".")]
     pub flake: String,
+    #[arg(short, long)]
+    pub lock_file: Option<PathBuf>,
+    #[arg(short, long)]
+    pub config_file: Option<PathBuf>,
 }
 
 #[derive(Clone, Debug, Parser)]
