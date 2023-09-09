@@ -1,0 +1,17 @@
+[package]
+name = "flat-flake"
+authors = [ "Lin Yinfeng <lin.yinfeng@outlook.com>" ]
+version = "0.1.0"
+edition = "2021"
+description = """
+Flat nix flake checker
+"""
+
+[dependencies]
+clap = { version = "*", features = [ "cargo", "derive" ] }
+clap_complete = "*"
+serde = {version = "*", features = ["derive"] }
+serde_json = "*"
+log = "*"
+pretty_env_logger = "*"
+thiserror = "*"
