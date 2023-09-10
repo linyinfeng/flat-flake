@@ -4,6 +4,7 @@
   lib,
   ...
 }: let
+  cfg = config.flatFlake;
   inherit
     (lib)
     mkOption
@@ -13,26 +14,46 @@
 in {
   _file = ./flake-module.nix;
   options.flatFlake = {
-    check = mkOption {
+    output.enable = mkOption {
       description = ''
-        Whether to add flat-flake check to checks.
+        Whether to output `config.flatFlake.config` as `outputs.flatFlake`.
       '';
       type = types.bool;
       default = true;
     };
-    allowed = mkOption {
-      description = ''
-        Explicitly allowed inputs.
-      '';
-      type = with types; listOf (listOf str);
-      default = [];
-      example = [
-        ["flake-utils" "systems"]
-      ];
+    check = {
+      enable = mkOption {
+        description = ''
+          Whether to add flat-flake check to `outputs.checks.''${config.flatFlake.check.name}`.
+        '';
+        type = types.bool;
+        default = true;
+      };
+      name = mkOption {
+        description = ''
+          Name of the check.
+        '';
+        type = types.str;
+        default = "flat-flake";
+      };
+    };
+    config = {
+      allowed = mkOption {
+        description = ''
+          Explicitly allowed input paths.
+        '';
+        type = with types; listOf (listOf str);
+        default = [];
+        example = [
+          ["flake-utils" "systems"]
+        ];
+      };
     };
   };
   config = {
-    flake.flatFlake = {inherit (config.flatFlake) allowed;};
+    flake = mkIf cfg.output.enable {
+      flatFlake = cfg.config;
+    };
     perSystem = {
       pkgs,
       system,
@@ -51,7 +72,7 @@ in {
           touch "$out"
         '';
     in {
-      checks.flat-flake = mkIf config.flatFlake.check check;
+      checks.${cfg.check.name} = mkIf cfg.check.enable check;
     };
   };
 }
