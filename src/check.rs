@@ -2,7 +2,7 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     fs::File,
     io::BufReader,
-    process::Command,
+    process::{Command, Output, Stdio},
 };
 
 use crate::flake::{Input, Locks, Metadata, Node};
@@ -130,7 +130,7 @@ where
 
     log::debug!("run command: {:?}", command_vec);
 
-    let output = command.output()?;
+    let output = get_command_output(command)?;
 
     let process_info = ProcessInfo {
         command: command_vec,
@@ -144,4 +144,12 @@ where
     }
 
     Ok(serde_json::from_str(&process_info.stdout)?)
+}
+
+pub fn get_command_output(mut command: Command) -> Result<Output, Error> {
+    let handle = command
+        .stdout(Stdio::piped())
+        .stderr(Stdio::inherit())
+        .spawn()?;
+    Ok(handle.wait_with_output()?)
 }
