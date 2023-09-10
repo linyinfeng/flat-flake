@@ -9,9 +9,8 @@ use error::Error;
 use options::{Commands, Options};
 
 fn main() {
-    init_logger();
-
     let options = options::Options::parse();
+    init_logger(&options);
     log::debug!("options = {:#?}", options);
     if let Err(e) = main_result(options) {
         log::error!("{}", e);
@@ -27,11 +26,16 @@ fn main_result(options: Options) -> Result<(), Error> {
     Ok(())
 }
 
-fn init_logger() {
+fn init_logger(options: &Options) {
     let mut builder = pretty_env_logger::formatted_builder();
+    let default_level = match options.verbose {
+        0 => "info",
+        1 => "debug",
+        _ => "trace",
+    };
     let filters = match std::env::var("RUST_LOG") {
         Ok(f) => f,
-        Err(_) => "flat_flake=info".to_string(),
+        Err(_) => format!("flat_flake={default_level}"),
     };
     builder.parse_filters(&filters);
     builder.init()

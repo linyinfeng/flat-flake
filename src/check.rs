@@ -128,7 +128,7 @@ where
     let mut command = Command::new("nix");
     command.args(args_vec);
 
-    log::debug!("run command: {:?}", command_vec);
+    log::trace!("run command: {:?}", command_vec);
 
     let output = get_command_output(command)?;
 
@@ -138,7 +138,7 @@ where
         stdout: String::from_utf8(output.stdout)?,
         stderr: String::from_utf8(output.stderr)?,
     };
-    log::debug!("command called:\n{}", process_info);
+    log::trace!("command called:\n{}", process_info);
     if !output.status.success() {
         return Err(Error::ProcessFailed(process_info));
     }

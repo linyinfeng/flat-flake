@@ -7,6 +7,9 @@ use clap::{Parser, Subcommand};
 pub struct Options {
     #[command(subcommand)]
     pub command: Commands,
+    #[arg(short, long, global = true, action = clap::ArgAction::Count,
+          help = "Increase logging verbosity, override by RUST_LOG")]
+    pub verbose: u8,
 }
 
 #[derive(Clone, Debug, Subcommand)]
