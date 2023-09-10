@@ -40,5 +40,5 @@ fn init_logger() {
 fn generate_shell_completions(gen_options: options::CompletionOptions) {
     let mut cli = options::Options::command();
     let mut stdout = std::io::stdout();
-    clap_complete::generate(gen_options.shell, &mut cli, "oranc", &mut stdout);
+    clap_complete::generate(gen_options.shell, &mut cli, "flat-flake", &mut stdout);
 }
