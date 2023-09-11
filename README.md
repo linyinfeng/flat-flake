@@ -50,4 +50,4 @@ To set flat flake configuration, use the `flatFlake.config` option.
 Set `flatFlake.check.enable = false` to disable check generation.
 Set `flatFlake.output.enable = false` to disable configuration output.
 
-Read <./flake-module.nix> for more information.
+Read [flake-module.nix](flake-module.nix) for more information.
