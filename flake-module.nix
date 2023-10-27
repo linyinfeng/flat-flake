@@ -64,7 +64,6 @@ in {
       check =
         pkgs.runCommand "flat-flake-check" {
           nativeBuildInputs = [pkgs.nix flat-flake.packages.${system}.flat-flake];
-          env.RUST_LOG = "debug";
         } ''
           flat-flake check \
             --lock-file "${self}/flake.lock" \
