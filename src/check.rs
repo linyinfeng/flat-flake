@@ -3,6 +3,7 @@ use std::{
     fs::File,
     io::BufReader,
     process::{Command, Output, Stdio},
+    vec,
 };
 
 use crate::flake::{Input, Locks, Metadata, Node};
@@ -28,7 +29,10 @@ pub fn check(check_options: CheckOptions) -> Result<(), Error> {
     let root_node = &get_node(nodes, root)?;
 
     let mut allowed = config.allowed;
-    allowed.extend(root_node.inputs.keys().map(|k| vec![k.to_owned()]));
+    allowed.extend(root_node.inputs.iter().filter_map(|(k, i)| match i {
+        Input::Introduce(_) => Some(vec![k.to_owned()]),
+        Input::Follow(_) => None,
+    }));
 
     let mut not_allowed = BTreeSet::new();
 
