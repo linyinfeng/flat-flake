@@ -2,40 +2,31 @@
   config,
   self,
   lib,
+  flake-parts-lib,
   ...
 }: let
-  cfg = config.flatFlake;
+  inherit (flake-parts-lib) mkPerSystemOption;
+  flakeCfg = config.flatFlake;
   inherit
     (lib)
     mkOption
     mkIf
     types
+    mkRenamedOptionModule
     ;
 in {
   _file = ./flake-module.nix;
-  options.flatFlake = {
+  imports = [
+    (mkRenamedOptionModule ["flatFlake" "check"] ["perSystem" "flatFlake" "check"])
+  ];
+  options = {
+    flatFlake = {
     output.enable = mkOption {
       description = ''
         Whether to output `config.flatFlake.config` as `outputs.flatFlake`.
       '';
       type = types.bool;
       default = true;
-    };
-    check = {
-      enable = mkOption {
-        description = ''
-          Whether to add flat-flake check to `outputs.checks.''${config.flatFlake.check.name}`.
-        '';
-        type = types.bool;
-        default = true;
-      };
-      name = mkOption {
-        description = ''
-          Name of the check.
-        '';
-        type = types.str;
-        default = "flat-flake";
-      };
     };
     config = {
       allowed = mkOption {
@@ -50,15 +41,38 @@ in {
       };
     };
   };
+  perSystem = mkPerSystemOption ({ ... }: {
+      options.flatFlake = {
+        check = {
+          enable = mkOption {
+            description = ''
+              Whether to add flat-flake check to `outputs.checks.''${config.flatFlake.check.name}`.
+            '';
+            type = types.bool;
+            default = true;
+          };
+          name = mkOption {
+            description = ''
+              Name of the check.
+            '';
+            type = types.str;
+            default = "flat-flake";
+          };
+        };
+      };
+    });
+  };
   config = {
-    flake = mkIf cfg.output.enable {
-      flatFlake = cfg.config;
+    flake = mkIf flakeCfg.output.enable {
+      flatFlake = flakeCfg.config;
     };
     perSystem = {
+      config,
       pkgs,
       system,
       ...
     }: let
+      cfg = config.flatFlake;
       json = pkgs.formats.json {};
       configFile = json.generate "flat-flake.json" self.flatFlake;
       check =
@@ -70,8 +84,8 @@ in {
             --config-file "${configFile}"
           touch "$out"
         '';
-    in {
-      checks.${cfg.check.name} = mkIf cfg.check.enable check;
+    in mkIf cfg.check.enable {
+      checks.${cfg.check.name} = check;
     };
   };
 }
