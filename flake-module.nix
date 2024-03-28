@@ -21,27 +21,27 @@ in {
   ];
   options = {
     flatFlake = {
-    output.enable = mkOption {
-      description = ''
-        Whether to output `config.flatFlake.config` as `outputs.flatFlake`.
-      '';
-      type = types.bool;
-      default = true;
-    };
-    config = {
-      allowed = mkOption {
+      output.enable = mkOption {
         description = ''
-          Explicitly allowed input paths.
+          Whether to output `config.flatFlake.config` as `outputs.flatFlake`.
         '';
-        type = with types; listOf (listOf str);
-        default = [];
-        example = [
-          ["flake-utils" "systems"]
-        ];
+        type = types.bool;
+        default = true;
+      };
+      config = {
+        allowed = mkOption {
+          description = ''
+            Explicitly allowed input paths.
+          '';
+          type = with types; listOf (listOf str);
+          default = [];
+          example = [
+            ["flake-utils" "systems"]
+          ];
+        };
       };
     };
-  };
-  perSystem = mkPerSystemOption ({ ... }: {
+    perSystem = mkPerSystemOption ({...}: {
       options.flatFlake = {
         check = {
           enable = mkOption {
@@ -84,8 +84,9 @@ in {
             --config-file "${configFile}"
           touch "$out"
         '';
-    in mkIf cfg.check.enable {
-      checks.${cfg.check.name} = check;
-    };
+    in
+      mkIf cfg.check.enable {
+        checks.${cfg.check.name} = check;
+      };
   };
 }
