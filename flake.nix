@@ -41,7 +41,7 @@
             ...
           }:
           let
-            craneLib = inputs.crane.lib.${system};
+            craneLib = inputs.crane.mkLib pkgs;
             src = craneLib.cleanCargoSource ./.;
             bareCommonArgs = {
               inherit src;
