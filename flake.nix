@@ -6,13 +6,9 @@
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
     crane.url = "github:ipetkov/crane";
-    crane.inputs.nixpkgs.follows = "nixpkgs";
     rust-overlay.url = "github:oxalica/rust-overlay";
-    rust-overlay.inputs.flake-utils.follows = "flake-utils";
     rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
     systems.url = "github:nix-systems/default";
-    flake-utils.url = "github:numtide/flake-utils";
-    flake-utils.inputs.systems.follows = "systems";
     flake-compat.url = "github:edolstra/flake-compat";
     flake-compat.flake = false;
   };
@@ -72,7 +68,12 @@
               package = self'.packages.flat-flake;
               doc = craneLib.cargoDoc commonArgs;
               fmt = craneLib.cargoFmt { inherit src; };
-              nextest = craneLib.cargoNextest commonArgs;
+              nextest = craneLib.cargoNextest (
+                commonArgs
+                // {
+                  cargoNextestExtraArgs = lib.escapeShellArgs [ "--no-tests=warn" ];
+                }
+              );
               clippy = craneLib.cargoClippy (
                 commonArgs // { cargoClippyExtraArgs = "--all-targets -- --deny warnings"; }
               );
@@ -87,7 +88,7 @@
             treefmt = {
               projectRootFile = "flake.nix";
               programs = {
-                nixfmt-rfc-style.enable = true;
+                nixfmt.enable = true;
                 rustfmt.enable = true;
               };
             };
