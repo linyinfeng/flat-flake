@@ -2,7 +2,7 @@
 name = "flat-flake"
 authors = [ "Lin Yinfeng <lin.yinfeng@outlook.com>" ]
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 description = """
 Flat nix flake checker
 """
