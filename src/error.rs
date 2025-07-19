@@ -48,7 +48,7 @@ pub fn display_path(paths: &BTreeSet<Vec<String>>) -> String {
         }
         result.push_str("[ ");
         for component in path {
-            result.push_str(&format!("{:?} ", component));
+            result.push_str(&format!("{component:?} "));
         }
         result.push(']');
     }

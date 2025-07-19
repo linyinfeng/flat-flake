@@ -19,10 +19,10 @@ const CONFIG_ATTRIBUTE_PATH: &str = "flatFlake";
 
 pub fn check(check_options: CheckOptions) -> Result<(), Error> {
     let config = get_config(&check_options)?;
-    log::debug!("config: {:#?}", config);
+    log::debug!("config: {config:#?}");
 
     let locks = get_locks(&check_options)?;
-    log::debug!("{:#?}", locks);
+    log::debug!("{locks:#?}");
 
     let Locks { root, nodes, .. } = &locks;
 
@@ -60,7 +60,7 @@ pub fn get_config(options: &CheckOptions) -> Result<Config, Error> {
     match call_nix(["eval", &format!("{flake}#{CONFIG_ATTRIBUTE_PATH}")]) {
         Ok(c) => Ok(c),
         Err(e) => {
-            log::debug!("error: {}", e);
+            log::debug!("error: {e}");
             log::info!(
                 "failed to eval '{flake}#{CONFIG_ATTRIBUTE_PATH}', use default configuration"
             );
@@ -132,7 +132,7 @@ where
     let mut command = Command::new("nix");
     command.args(args_vec);
 
-    log::trace!("run command: {:?}", command_vec);
+    log::trace!("run command: {command_vec:?}");
 
     let output = get_command_output(command)?;
 
@@ -142,7 +142,7 @@ where
         stdout: String::from_utf8(output.stdout)?,
         stderr: String::from_utf8(output.stderr)?,
     };
-    log::trace!("command called:\n{}", process_info);
+    log::trace!("command called:\n{process_info}");
     if !output.status.success() {
         return Err(Error::ProcessFailed(process_info));
     }

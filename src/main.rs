@@ -11,9 +11,9 @@ use options::{Commands, Options};
 fn main() {
     let options = options::Options::parse();
     init_logger(&options);
-    log::debug!("options = {:#?}", options);
+    log::debug!("options = {options:#?}");
     if let Err(e) = main_result(options) {
-        log::error!("{}", e);
+        log::error!("{e}");
         std::process::exit(1);
     }
 }
