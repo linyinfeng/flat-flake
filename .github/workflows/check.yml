@@ -1,30 +1,62 @@
-name: "Check"
+name: Check
+
 on:
-  push:
   pull_request:
+    branches: [main]
+  push:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
-  check:
-    strategy:
-      matrix:
-        runner:
-          - ubuntu-latest # x86_64-linux
-          - ubuntu-24.04-arm # aarch64-linux
-          - macos-15-intel # x86_64-darwin
-          - macos-latest # aarch64-linux
-    runs-on: ${{ matrix.runner }}
+  nix-flake-check:
+    name: Check distribution flake
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@main
-    - name: Install nix
-      uses: cachix/install-nix-action@master
-      with:
-        github_access_token: '${{ secrets.GITHUB_TOKEN }}'
-    - name: Setup cachix
-      uses: cachix/cachix-action@master
-      with:
-        name: linyinfeng
-        signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
-    - name: Nix flake check
-      run: nix flake check
+      - name: Checkout
+        uses: actions/checkout@main
+      - name: Install nix
+        uses: cachix/install-nix-action@master
+        with:
+          github_access_token: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Check root flake
+        run: nix flake check --print-build-logs
+
+  nix-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+      - name: Install nix
+        uses: cachix/install-nix-action@master
+        with:
+          github_access_token: "${{ secrets.GITHUB_TOKEN }}"
+      - id: set-matrix
+        name: Generate Nix matrix
+        run: |
+          set -Eeu
+          matrix="$(nix eval --json './nix/develop#githubActions.matrix')"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  nix-build:
+    name: ${{ matrix.name }} (${{ matrix.system }})
+    needs: nix-matrix
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.nix-matrix.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+      - name: Install nix
+        uses: cachix/install-nix-action@master
+        with:
+          github_access_token: "${{ secrets.GITHUB_TOKEN }}"
+      - name: Setup cachix
+        uses: cachix/cachix-action@master
+        with:
+          name: linyinfeng
+          signingKey: "${{ secrets.CACHIX_SIGNING_KEY }}"
+      - name: Build flake check
+        run: nix build --print-build-logs './nix/develop#${{ matrix.attr }}'
