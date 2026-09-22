@@ -14,8 +14,13 @@ jobs:
     - name: Checkout
       uses: actions/checkout@main
       with:
-        ref: main
+        fetch-depth: 0
         token: '${{ secrets.PAT_FOR_AUTOMATED_UPDATE }}'
+    - name: Prepare branch
+      run: |
+        git checkout main
+        git branch --force update main
+        git checkout update
     - name: Install nix
       uses: cachix/install-nix-action@master
       with:
@@ -31,19 +36,27 @@ jobs:
         git config --global user.name "Nano"
     - name: Nix flake update
       run: |
-        nix flake update --commit-lock-file
+        nix flake update --flake . --commit-lock-file
+        nix flake update --flake ./nix/develop --commit-lock-file
     - name: Cargo update
       run: |
-        nix develop --command cargo update
-        if [ -z $(git status --porcelain) ]; then
+        nix develop ./nix/develop --command cargo update
+        if [ -z "$(git status --porcelain)" ]; then
           echo "clean, skip..."
         else
           git add --all
           git commit --message "Cargo update"
         fi
-    - name: Nix flake check
+    - name: Push update branch
+      run: git push --set-upstream origin update --force
+    - name: Create pull request
       run: |
-        nix flake check
-    - name: Git push
-      run: |
-        git push
+        gh pr create \
+          --base main \
+          --head update \
+          --title "Automated update" \
+          --body "Automated Nix flake and Cargo dependency updates." || \
+        gh pr edit update \
+          --body "Automated Nix flake and Cargo dependency updates."
+      env:
+        GH_TOKEN: '${{ secrets.PAT_FOR_AUTOMATED_UPDATE }}'
