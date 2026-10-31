@@ -75,9 +75,11 @@
         };
       flake.githubActions = inputs.nix-github-actions.lib.mkGithubMatrix {
         checks = self.checks;
-        # nix-github-actions pins aarch64-darwin to macos-14, which is retired.
+        # nix-github-actions pins aarch64-darwin to the retired macos-14. Only
+        # x86_64-linux and macOS arm64 have a moving "-latest" label; arm64 Linux
+        # has none, so it stays pinned.
         platforms = {
-          x86_64-linux = "ubuntu-24.04";
+          x86_64-linux = "ubuntu-latest";
           aarch64-linux = "ubuntu-24.04-arm";
           aarch64-darwin = "macos-latest";
         };
