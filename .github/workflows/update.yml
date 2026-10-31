@@ -51,12 +51,15 @@ jobs:
       run: git push --set-upstream origin update --force
     - name: Create pull request
       run: |
+        body="Automated Nix flake and Cargo dependency updates."
         gh pr create \
           --base main \
           --head update \
           --title "Automated update" \
-          --body "Automated Nix flake and Cargo dependency updates." || \
+          --label auto-update \
+          --body "$body" || \
         gh pr edit update \
-          --body "Automated Nix flake and Cargo dependency updates."
+          --add-label auto-update \
+          --body "$body"
       env:
         GH_TOKEN: '${{ secrets.PAT_FOR_AUTOMATED_UPDATE }}'
