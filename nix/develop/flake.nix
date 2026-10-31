@@ -75,6 +75,12 @@
         };
       flake.githubActions = inputs.nix-github-actions.lib.mkGithubMatrix {
         checks = self.checks;
+        # nix-github-actions pins aarch64-darwin to macos-14, which is retired.
+        platforms = {
+          x86_64-linux = "ubuntu-24.04";
+          aarch64-linux = "ubuntu-24.04-arm";
+          aarch64-darwin = "macos-latest";
+        };
       };
     };
 }
