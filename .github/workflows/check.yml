@@ -60,3 +60,15 @@ jobs:
           signingKey: "${{ secrets.CACHIX_SIGNING_KEY }}"
       - name: Build flake check
         run: nix build --print-build-logs './nix/develop#${{ matrix.attr }}'
+
+  ci-gate:
+    name: ci-gate
+    needs: [nix-flake-check, nix-matrix, nix-build]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail unless every job succeeded
+        run: |
+          [ "${{ needs.nix-flake-check.result }}" = success ]
+          [ "${{ needs.nix-matrix.result }}" = success ]
+          [ "${{ needs.nix-build.result }}" = success ]

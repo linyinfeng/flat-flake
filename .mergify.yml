@@ -1,0 +1,13 @@
+# yaml-language-server: $schema=https://docs.mergify.com/mergify-configuration-schema.json
+pull_request_rules:
+  - name: Merge automated update after every check
+    conditions:
+      - label = auto-update
+      - base = main
+      # fast-forward only lands on an up-to-date main.
+      - "#commits-behind = 0"
+      - check-success = ci-gate
+      - "#check-failure = 0"
+    actions:
+      merge:
+        method: fast-forward
