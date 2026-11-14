@@ -1,4 +1,6 @@
 {
+  description = "Enforce flat flake inputs";
+
   nixConfig = {
     extra-substituters = [ "https://linyinfeng.cachix.org" ];
     extra-trusted-public-keys = [
