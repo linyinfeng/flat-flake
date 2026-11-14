@@ -56,10 +56,10 @@ jobs:
           --base main \
           --head update \
           --title "Automated update" \
-          --label auto-update \
+          --label "auto update" \
           --body "$body" || \
         gh pr edit update \
-          --add-label auto-update \
+          --add-label "auto update" \
           --body "$body"
       env:
         GH_TOKEN: '${{ secrets.PAT_FOR_AUTOMATED_UPDATE }}'
